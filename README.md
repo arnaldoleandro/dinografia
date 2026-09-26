@@ -1,70 +1,60 @@
-# dinografia
-Letras e aventuras com dinossauros
+# Dinografia
 
-## Primeiro protótipo: V de velociraptor
+Letras e aventuras com dinossauros. Primeiro protótipo: **V de velociraptor**.
 
-No Studio, use **File > Open from File** e abra `build/Dinografia-PrimeiroV.rbxlx`. Clique em **Play**, aproxime-se da jaula e **toque/clique no V da porta**. A câmera enquadra a porta; no próximo toque, percorra o sulco começando no ponto amarelo. A pintura acompanha o progresso. Ao concluir, a câmera recua, o giroflex acende, a porta sobe e só então Blue é liberada. Os controles voltam automaticamente. É possível levantar o dedo e retomar, usar ↻ para recomeçar ou × para sair. Mouse também funciona.
+## Preparar e gerar o jogo
 
-O sulco é um efeito visual de profundidade desenhado na superfície da porta. A versão anterior, com botão e atividade na tela, foi testada satisfatoriamente pelo usuário; o usuário também confirmou a fluidez da apresentação na porta após os ajustes de pintura e alinhamento do ponteiro. Os demais casos do roteiro de validação continuam pendentes. Para carregar um build atualizado, pare o Play e reabra o arquivo. O backup local anterior é `build/Dinografia-PrimeiroV-anterior.rbxlx`.
-
-Essa é uma cópia independente montada a partir dos assets do cenário exportado. O original `fontes para o projeto/primeiro_dinossauro.rbxl` permanece preservado. Não é necessário conectar Rojo para testar o arquivo gerado.
-
-Para gerar novamente: **Ctrl+Shift+B** no VS Code, ou:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-prototype.ps1
-```
-
-O protótipo usa `prototype.project.json`. Para editar com sincronização, execute a tarefa **Rojo: servir protótipo (34873)** e conecte o plugin à porta **34873**, somente com a cópia do protótipo aberta. O projeto antigo da porta 34872 continua sendo apenas o marcador de conexão.
-
-Colisão/respawn foram reorganizados: a jaula começa no piso, Blue nasce alinhada e fica parada enquanto presa; servidor valida o percurso antes de abrir a porta. Depois ela segue e descansa, sem órbita/patrulha nessa versão. O estado de liberação dura a sessão e é mantido no respawn. O primeiro usuário a completar libera a Blue compartilhada; repetir não fecha a jaula.
-
-Ver [roteiro de validação](docs/validacao-prototipo.md) para testes no Studio e tablet. Ainda é necessária validação de física, animações e toque real; testes locais não executam o motor Roblox.
-
-### Verificações locais
-
-Luau 0.739 é usado somente nas verificações (o build requer apenas Rojo). Se necessário, execute `scripts/setup-luau.ps1` para baixar o pacote oficial com SHA256 fixo.
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-prototype.ps1
-```
-
-O comando compila os scripts, executa 23 testes do traçado compartilhado e da projeção do toque na porta e da suavização da pintura, e gera o protótipo. A extração dos assets preserva a origem de terceiros; a licença do repositório não redefine os direitos desses assets.
-
-## Desenvolvimento local com Rojo
-
-Trabalhar na branch `work/desenvolvimento-inicial`. Ler [handoff.md](handoff.md) antes de alterar o projeto; integrar à `main` somente após validar uma versão aceitável.
-
-Rojo **7.7.0**, instalado localmente em `.tools/rojo/7.7.0/rojo.exe`. Executável e builds não entram no Git. Em outro clone, instalar pelo PowerShell na raiz:
+No Windows x64, execute na raiz do repositório:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-rojo.ps1
-.\.tools\rojo\7.7.0\rojo.exe plugin install
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-prototype.ps1
 ```
 
-O instalador baixa o release oficial para Windows x64 e verifica o SHA256. A instalação do plugin grava na pasta de plugins do Studio. A conexão local não exige login no Rojo.
+O instalador baixa o Rojo 7.7.0 oficial e verifica o SHA256. O build usa `prototype.project.json`, `src/` e `assets/`; não depende de configurações do editor, memória de agente ou arquivos de referência locais.
 
-### Iniciar e validar
+No Roblox Studio, use **File > Open from File** e abra `build/Dinografia-PrimeiroV.rbxlx`. Não é necessário conectar o Rojo para jogar esse arquivo. Após gerar uma atualização, pare o Play e reabra o arquivo.
 
-Para o marcador inicial, no VS Code: **Terminal > Run Task** e selecionar **Rojo: marcador de conexão (34872)** ou **Rojo: validar marcador**. Alternativamente:
+## Jogar
+
+Clique em **Play**, aproxime-se da jaula e toque/clique no V da porta. A câmera enquadra a porta; no próximo toque, percorra o sulco começando no ponto amarelo. A tinta preenche a letra conforme o movimento. Ao concluir, a câmera recua, o giroflex acende, a porta sobe e Blue é liberada.
+
+É possível levantar o dedo e retomar, usar ↻ para recomeçar ou × para sair. Mouse também funciona. O sulco simula profundidade na superfície da porta. Após a abertura, Blue segue o jogador e descansa; repetir a atividade não fecha a jaula. A liberação é compartilhada e dura a sessão, inclusive entre respawns de Blue.
+
+A fluidez da escrita foi confirmada em teste manual. Consulte o [roteiro de validação](docs/validacao-prototipo.md) para os demais casos de física, navegação, respawn e dispositivos.
+
+## Testes
 
 ```powershell
-.\.tools\rojo\7.7.0\rojo.exe serve default.project.json
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-rojo.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-luau.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-prototype.ps1
 ```
 
-O servidor usa `127.0.0.1:34872`. Iniciar apenas uma instância por vez; se a porta já estiver ocupada, reutilizar o servidor existente. Um servidor iniciado no terminal pode ser encerrado com `Ctrl+C`.
+O instalador baixa o Luau 0.739 oficial com SHA256 fixo. O teste compila os scripts, executa 23 testes do percurso, projeção e suavização da pintura, e gera o jogo. Esses testes não executam o motor Roblox; a validação no Studio e em touchscreen continua necessária.
 
-### Primeira conexão no Studio
+## Sincronizar com Rojo
 
-1. Salvar uma cópia do jogo atual. Se o Studio já estava aberto durante a instalação, reiniciá-lo após salvar.
-2. Abrir essa cópia e acessar o plugin **Rojo**, na aba **Plugins**.
-3. Conectar a `localhost`, porta `34872`. Se o plugin solicitar acesso HTTP local, permitir essa conexão.
-4. Conferir a prévia de sincronização, quando exibida: o mapeamento inicial cria apenas `ReplicatedStorage > DinografiaRojo > ConnectionCheck`. Se aparecerem remoções ou mudanças fora desse marcador, cancelar e revisar.
-5. Confirmar no Explorer que `ConnectionCheck.Value` contém `Dinografia: Rojo conectado`.
+Instale o plugin e sirva o protótipo:
 
-O `default.project.json` preserva instâncias desconhecidas e não mapeia Workspace, Blue ou os scripts existentes. O RBXM em `src/` continua sendo uma fonte de referência, ainda fora da sincronização. Após comparar as fontes com o jogo completo, ampliaremos o mapeamento.
+```powershell
+.\.tools\rojo\7.7.0\rojo.exe plugin install
+.\.tools\rojo\7.7.0\rojo.exe serve prototype.project.json
+```
 
-O build `build/dinografia-rojo-check.rbxlx` valida apenas essa configuração mínima; não é uma cópia do jogo completo. A sincronização dentro do Studio e o comportamento do jogo precisam ser verificados separadamente.
+Com a cópia do protótipo aberta no Studio, conecte o plugin a `localhost:34873`. A conexão local não exige login no Rojo. Encerre o servidor com `Ctrl+C`.
 
-Referências: [instalação oficial](https://rojo.space/docs/v7/getting-started/installation/) e [formato do projeto](https://rojo.space/docs/v7/project-format/).
+Para diagnosticar apenas a conexão, `default.project.json` e `scripts/build-rojo.ps1` oferecem um marcador mínimo em `ReplicatedStorage/DinografiaRojo/ConnectionCheck`, usando a porta 34872. Esse projeto não representa o jogo completo.
+
+## Organização
+
+- `src/`: código cliente, servidor e lógica compartilhada.
+- `assets/`: modelos e iluminação necessários ao jogo.
+- `tests/`: testes automatizados da lógica pura.
+- `scripts/`: instalação de ferramentas, build e testes reproduzíveis.
+- `docs/validacao-prototipo.md`: roteiro de testes no motor.
+
+Configurações pessoais de editor, memória de agente, inspeções, fontes antigas, credenciais, ferramentas baixadas e builds ficam fora do versionamento. O `.gitignore` não remove conteúdo já presente no histórico e não detecta dados pessoais inseridos em arquivos de código ou documentação.
+
+Trabalhar na branch `work/desenvolvimento-inicial`; integrar à `main` somente após aprovação da versão. Os assets extraídos preservam sua origem de terceiros; a licença do repositório não redefine os direitos desses assets.
+
+Referências: [instalação do Rojo](https://rojo.space/docs/v7/getting-started/installation/) e [formato do projeto](https://rojo.space/docs/v7/project-format/).
