@@ -1,0 +1,23 @@
+{
+  "name": "Dinografia",
+  "serveAddress": "127.0.0.1",
+  "servePort": 34872,
+  "tree": {
+    "$className": "DataModel",
+    "$ignoreUnknownInstances": true,
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "$ignoreUnknownInstances": true,
+      "DinografiaRojo": {
+        "$className": "Folder",
+        "$ignoreUnknownInstances": true,
+        "ConnectionCheck": {
+          "$className": "StringValue",
+          "$properties": {
+            "Value": "Dinografia: Rojo conectado"
+          }
+        }
+      }
+    }
+  }
+}

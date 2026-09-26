@@ -1,0 +1,36 @@
+# Ferramentas baixadas e arquivos gerados
+/.tools/
+/build/
+
+# Configuração pessoal de editores e agentes
+/.vscode/
+/.idea/
+/.codex/
+/.agents/
+*.code-workspace
+
+# Memória local, inspeção e fontes de referência
+/handoff.md
+/docs/inspecao-cenario.md
+/fontes para o projeto/
+/src/DinosaurBehavior.rbxm
+
+# Ambiente, credenciais e ajustes locais
+.env
+.env.*
+!.env.example
+!.env.template
+*.local
+*.local.*
+/secrets/
+/credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Arquivos temporários do sistema
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.log
