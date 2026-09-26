@@ -1,0 +1,16 @@
+return table.freeze({
+	TraceTolerance = 0.075,
+	MaxTraceSamples = 2048,
+	FollowDistance = 12,
+	FollowResumeDistance = 16,
+	WalkSpeed = 10,
+	RepathSeconds = 1,
+	WaypointTimeout = 5,
+	RespawnSeconds = 3,
+	AgentRadius = 3,
+	AgentHeight = 7,
+	ActivityDistance = 45,
+	SignalSeconds = 1.1,
+	GateLiftSeconds = 1.6,
+	BeaconSeconds = 4.5,
+})

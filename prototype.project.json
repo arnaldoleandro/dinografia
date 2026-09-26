@@ -1,0 +1,37 @@
+{
+  "name": "Dinografia - Primeiro V",
+  "serveAddress": "127.0.0.1",
+  "servePort": 34873,
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "Baseplate": { "$path": "assets/Baseplate.rbxm" },
+      "SpawnLocation": { "$path": "assets/SpawnLocation.rbxm" }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$path": "assets/Lighting",
+      "$properties": { "Brightness": 3, "ClockTime": 14.5, "GlobalShadows": true }
+    },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Dinografia": { "$path": "src/shared" }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "BlueTemplate": { "$path": "assets/Blue.rbxm" }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Dinografia": { "$path": "src/server" }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Dinografia": { "$path": "src/client" }
+      }
+    }
+  }
+}
