@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "SoundId": "rbxassetid://9112795571",
+    "Volume": 0.07,
+    "Looped": true,
+    "PlaybackSpeed": 1
+  },
+  "className": "Sound",
+  "children": [
+    {
+      "name": "SoftenHighs",
+      "className": "EqualizerSoundEffect",
+      "properties": {
+        "HighGain": -30,
+        "MidGain": -12,
+        "LowGain": 0,
+        "Enabled": true
+      }
+    }
+  ]
+}

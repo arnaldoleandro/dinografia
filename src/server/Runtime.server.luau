@@ -6,6 +6,7 @@ local ServerStorage = game:GetService("ServerStorage")
 
 local shared = ReplicatedStorage:WaitForChild("Dinografia")
 local Config, Trace = require(shared.Config), require(shared.Trace)
+local DoorCycle = require(shared.DoorCycle)
 local Cage, Blue = require(script.Parent.Cage), require(script.Parent.Blue)
 
 for _, name in ipairs({ "DinografiaPlayers", "DinografiaBlue" }) do
@@ -17,15 +18,18 @@ PhysicsService:CollisionGroupSetCollidable("DinografiaBlue", "Default", true)
 
 local playerConnections, characterConnections = {}, {}
 local sessions, requests = {}, {}
+--- Assigns the player collision group and clears stale writing sessions.
 local function setupCharacter(player, character)
 	if characterConnections[player] then characterConnections[player]:Disconnect() end
 	sessions[player] = nil
+	--- Applies the collision group to character parts.
 	local function assign(item)
 		if item:IsA("BasePart") then item.CollisionGroup = "DinografiaPlayers" end
 	end
 	characterConnections[player] = character.DescendantAdded:Connect(assign)
 	for _, item in ipairs(character:GetDescendants()) do assign(item) end
 end
+--- Watches character changes for one player.
 local function setupPlayer(player)
 	playerConnections[player] = player.CharacterAdded:Connect(function(character) setupCharacter(player, character) end)
 	if player.Character then setupCharacter(player, player.Character) end
@@ -41,18 +45,23 @@ for _, player in ipairs(Players:GetPlayers()) do setupPlayer(player) end
 require(script.Parent.Environment)()
 local cage = Cage.new()
 local unlocked, owner, blue = false, nil, nil
+--- Respawns Blue and opens the exit before restoring her movement.
 local function spawnBlue()
 	blue = Blue.new(ServerStorage:WaitForChild("BlueTemplate"), cage, function()
 		blue = nil
 		task.delay(Config.RespawnSeconds, spawnBlue)
 	end)
-	if unlocked then blue:Unlock(owner) end
+	if unlocked then
+		local spawned=blue
+		cage:Open(function() if blue==spawned then blue:Unlock(owner) end end)
+	end
 end
 spawnBlue()
 
 local remote = Instance.new("RemoteEvent")
 remote.Name = "Activity"
 remote.Parent = shared
+--- Limits repeated requests per player and action.
 local function allow(player, action)
 	local now = os.clock()
 	local last = requests[player] or {}
@@ -61,7 +70,8 @@ local function allow(player, action)
 	requests[player] = last
 	return true
 end
-remote.OnServerEvent:Connect(function(player, action, token, samples)
+--- Validates a writing session before requesting a shared door opening.
+local function handleActivity(player, action, token, samples)
 	if type(action) ~= "string" then return end
 	if action ~= "begin" and action ~= "complete" and action ~= "cancel" then return end
 	if not allow(player, action) then return end
@@ -73,6 +83,10 @@ remote.OnServerEvent:Connect(function(player, action, token, samples)
 		return
 	end
 	if action == "begin" then
+		if not DoorCycle.CanWrite(cage.Model:GetAttribute("DoorState")) then
+			remote:FireClient(player,"error","Espere a porta fechar para escrever outro V.")
+			return
+		end
 		local root=character:FindFirstChild("HumanoidRootPart")
 		if not root or (root.Position-cage.Panel.Position).Magnitude>Config.ActivityDistance then
 			remote:FireClient(player,"error","Chegue mais perto da porta da Blue.")
@@ -86,6 +100,11 @@ remote.OnServerEvent:Connect(function(player, action, token, samples)
 	local session = sessions[player]
 	if not session or type(token) ~= "string" or token ~= session.token or session.character ~= character then return end
 	if action == "cancel" then sessions[player] = nil; return end
+	if not DoorCycle.CanWrite(cage.Model:GetAttribute("DoorState")) then
+		sessions[player]=nil
+		remote:FireClient(player,"error","A porta já está abrindo. Espere ela fechar para repetir.",token)
+		return
+	end
 	local valid = Trace.Validate(samples, Config.TraceTolerance, Config.MaxTraceSamples)
 	if not valid then
 		remote:FireClient(player, "error", "Vamos tentar de novo, seguindo a faixa do V.", token)
@@ -99,6 +118,7 @@ remote.OnServerEvent:Connect(function(player, action, token, samples)
 		unlocked = true
 		if blue then blue:Unlock(owner) end
 	end)
-end)
+end
+remote.OnServerEvent:Connect(handleActivity)
 
 print("[Dinografia] Pronto: V guiado, jaula alinhada e Blue com ciclo único de respawn.")

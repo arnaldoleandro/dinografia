@@ -13,3 +13,4 @@ foreach ($test in (Get-ChildItem -LiteralPath (Join-Path $projectRoot 'tests') -
     if ($LASTEXITCODE -ne 0) { throw "Falha no teste: $($test.Name)" }
 }
 & (Join-Path $PSScriptRoot 'build-prototype.ps1')
+& (Join-Path $PSScriptRoot 'build-avenue.ps1')

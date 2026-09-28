@@ -1,5 +1,6 @@
 return table.freeze({
 	TraceTolerance = 0.075,
+	AlphabetTraceTolerance = 0.065,
 	MaxTraceSamples = 2048,
 	FollowDistance = 12,
 	FollowResumeDistance = 16,
@@ -12,5 +13,6 @@ return table.freeze({
 	ActivityDistance = 45,
 	SignalSeconds = 1.1,
 	GateLiftSeconds = 1.6,
+	GateOpenSeconds = 18,
 	BeaconSeconds = 4.5,
 })

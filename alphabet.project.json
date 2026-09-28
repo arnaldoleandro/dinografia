@@ -1,0 +1,53 @@
+{
+    "name":  "Dinografia - Avenida A-Z",
+    "serveAddress":  "127.0.0.1",
+    "servePort":  34874,
+    "tree":  {
+                 "$className":  "DataModel",
+                 "Workspace":  {
+                                   "$className":  "Workspace"
+                               },
+                 "Lighting":  {
+                                  "$className":  "Lighting",
+                                  "$path":  "assets/Lighting",
+                                  "$properties":  {
+                                                      "Brightness":  3,
+                                                      "ClockTime":  14.5,
+                                                      "GlobalShadows":  true
+                                                  }
+                              },
+                 "ReplicatedStorage":  {
+                                           "$className":  "ReplicatedStorage",
+                                           "Dinografia":  {
+                                                              "$path":  "src/shared"
+                                                          },
+                                           "DinografiaAudio":  {
+                                                                   "$path":  "src/audio"
+                                                               }
+                                       },
+                 "ServerScriptService":  {
+                                             "$className":  "ServerScriptService",
+                                             "Dinografia":  {
+                                                                "$path":  "src/avenue/server",
+                                                                "Cage":  {
+                                                                             "$path":  "src/server/Cage.luau"
+                                                                         },
+                                                                "DinosaurModels":  {
+                                                                                       "$path":  "src/server/DinosaurModels.luau"
+                                                                                   }
+                                                            }
+                                         },
+                 "StarterPlayer":  {
+                                       "$className":  "StarterPlayer",
+                                       "StarterPlayerScripts":  {
+                                                                    "$className":  "StarterPlayerScripts",
+                                                                    "Dinografia":  {
+                                                                                       "$path":  "src/avenue/client",
+                                                                                       "LetterDisplay":  {
+                                                                                                             "$path":  "src/client/LetterDisplay.luau"
+                                                                                                         }
+                                                                                   }
+                                                                }
+                                   }
+             }
+}

@@ -34,3 +34,6 @@
 Thumbs.db
 Desktop.ini
 *.log
+
+# Registros locais de testes e interacoes
+/logs/
