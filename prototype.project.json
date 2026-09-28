@@ -16,7 +16,8 @@
     },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "Dinografia": { "$path": "src/shared" }
+      "Dinografia": { "$path": "src/shared" },
+      "DinografiaAudio": { "$path": "src/audio" }
     },
     "ServerStorage": {
       "$className": "ServerStorage",

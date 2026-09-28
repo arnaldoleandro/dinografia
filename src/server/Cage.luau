@@ -2,17 +2,22 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local Config = require(game:GetService("ReplicatedStorage").Dinografia.Config)
 
+local Players = game:GetService("Players")
+local Cycle = require(game:GetService("ReplicatedStorage").Dinografia.DoorCycle)
 local Cage = {}
-function Cage.new()
+--- Builds the cage and its reusable, obstruction-aware door.
+function Cage.new(options)
 	local model = Instance.new("Model")
-	model.Name = "BlueCage"
-	local center = Vector3.new(0, 0, 40)
+	model.Name = if options then "Cage_"..options.Letter else "BlueCage"
+	local origin = if options then options.CFrame else CFrame.new(0,0,40)
+	local center = origin.Position
 	local floorTop = 0.5
+	--- Creates one fixed structural part.
 	local function part(name, size, offset, color, transparency)
 		local p = Instance.new("Part")
 		p.Name, p.Size = name, size
 		p.Anchored = true
-		p.Position = center + offset
+		p.CFrame = origin * CFrame.new(offset)
 		p.Color = color
 		p.Material = if transparency then Enum.Material.Glass else Enum.Material.Metal
 		p.Transparency = transparency or 0
@@ -41,7 +46,7 @@ function Cage.new()
 	-- Above the fixed right wall, clear of the rising door.
 	local pedestal = part("BeaconBase", Vector3.new(0.5,2.3,2.3), Vector3.new(9,floorTop+15.6,-16),metal)
 	pedestal.Shape = Enum.PartType.Cylinder
-	pedestal.Orientation = Vector3.new(0,0,90)
+	pedestal.CFrame = pedestal.CFrame * CFrame.Angles(0,0,math.pi/2)
 	local dome = part("BeaconLens", Vector3.new(1.8,1.5,1.8),Vector3.new(9,floorTop+16.4,-16),Color3.fromRGB(101,73,30))
 	dome.Shape = Enum.PartType.Ball
 	dome.CanCollide = false
@@ -59,12 +64,18 @@ function Cage.new()
 		table.insert(beams,light)
 	end
 	local closed = gate.CFrame
-	model.Parent = workspace
+	if options then
+        model:SetAttribute("Letter",options.Letter)
+        model:SetAttribute("DinosaurName",options.Name)
+        model:SetAttribute("StationIndex",options.Index)
+    end
+    model.Parent = if options then options.Parent else workspace
 	model:SetAttribute("Unlocked", false)
 	model:SetAttribute("DoorState", "Locked")
-	local opening, opened, beaconConnection = false, false, nil
+	local beaconConnection = nil
 	local callbacks={}
 	local self = { Model = model, FloorTop = floorTop, Center = center, Panel = panel }
+	--- Starts one short beacon effect without stacking its update loop.
 	function self:Signal()
 		if beaconConnection then return end
 		local elapsed, accumulated=0,0
@@ -86,31 +97,79 @@ function Cage.new()
 			end
 		end)
 	end
-	function self:Open(onOpened)
-		model:SetAttribute("LetterComplete",true)
-		self:Signal()
-		if opened then onOpened(); return end
-		table.insert(callbacks,onOpened)
-		if opening then return end
-		opening=true
-		model:SetAttribute("DoorState", "Signalling")
-		task.spawn(function()
-			task.wait(Config.SignalSeconds)
-			if not model.Parent then return end
-			model:SetAttribute("DoorState", "Opening")
-			local tween=TweenService:Create(gate,TweenInfo.new(Config.GateLiftSeconds,Enum.EasingStyle.Quad,Enum.EasingDirection.InOut),
-				{CFrame=closed+Vector3.new(0,15,0)})
-			tween:Play()
-			local result=tween.Completed:Wait()
-			if result~=Enum.PlaybackState.Completed or not model.Parent then return end
-			gate.CanCollide=false
-			opened=true
-			model:SetAttribute("Unlocked",true)
-			model:SetAttribute("DoorState","Open")
-			for _,callback in ipairs(callbacks) do callback() end
-			table.clear(callbacks)
-		end)
-	end
+    local cycle=Cycle.new(Config.SignalSeconds,Config.GateLiftSeconds,Config.GateOpenSeconds)
+    local activeTween,cycleConnection=nil,nil
+    local raised=closed+Vector3.new(0,15,0)
+    local params=OverlapParams.new()
+    params.FilterType=Enum.RaycastFilterType.Include
+    params.MaxParts=1
+
+    --- Detects players or Blue in the cage and the entire doorway safety margin.
+    local function occupied()
+        local actors={}
+        for _,player in ipairs(Players:GetPlayers()) do
+            if player.Character then table.insert(actors,player.Character) end
+        end
+        local dinosaur=workspace:FindFirstChild("Blue")
+        if dinosaur then table.insert(actors,dinosaur) end
+        if #actors==0 then return false end
+        params.FilterDescendantsInstances=actors
+        return #workspace:GetPartBoundsInBox(origin*CFrame.new(0,8,-1.5),
+            Vector3.new(28,17,37),params)>0
+    end
+
+    --- Applies one state transition and completes callbacks only after opening fully.
+    local function applyState(previous)
+        if previous==cycle.state then return end
+        if activeTween then activeTween:Cancel();activeTween=nil end
+        if cycle.state=="Signalling" then
+            model:SetAttribute("LetterComplete",true)
+            self:Signal()
+        elseif cycle.state=="Opening" or cycle.state=="Closing" then
+            gate.CanCollide=false
+            activeTween=TweenService:Create(gate,TweenInfo.new(Config.GateLiftSeconds,
+                Enum.EasingStyle.Quad,Enum.EasingDirection.InOut),
+                {CFrame=if cycle.state=="Opening" then raised else closed})
+            activeTween:Play()
+        elseif cycle.state=="Open" then
+            gate.CFrame=raised
+            gate.CanCollide=false
+            model:SetAttribute("Unlocked",true)
+        elseif cycle.state=="Closed" then
+            gate.CFrame=closed
+            gate.CanCollide=true
+            model:SetAttribute("LetterComplete",false)
+        end
+        model:SetAttribute("DoorState",cycle.state)
+        if cycle.state=="Open" then
+            local ready=callbacks;callbacks={}
+            for _,callback in ipairs(ready) do callback() end
+        end
+    end
+
+    --- Opens or reopens the door, preserving Blue's permanent session release.
+    function self:Open(onOpened)
+        local previous=cycle.state
+        cycle:Open(os.clock())
+        if previous=="Open" then onOpened();return end
+        table.insert(callbacks,onOpened)
+        applyState(previous)
+    end
+
+    --- Updates the timer and reverses closing if an actor enters the protected area.
+    local function stepDoor()
+        if not model.Parent then
+            cycleConnection:Disconnect()
+            if activeTween then activeTween:Cancel() end
+            return
+        end
+        local previous=cycle.state
+        local now=os.clock()
+        local blocked=(previous=="Closing" or (previous=="Open" and now>=cycle.deadline)) and occupied()
+        cycle:Step(now,blocked)
+        applyState(previous)
+    end
+    cycleConnection=RunService.Heartbeat:Connect(stepDoor)
 	return self
 end
 return Cage
